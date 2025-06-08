@@ -7,16 +7,17 @@ use rquickjs::prelude::MutFn;
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
+use std::fs::read_to_string;
+use std::path::Path;
 use std::time::Duration;
 
 pub fn main() {
     let runtime = rquickjs::Runtime::new().unwrap();
     let context = rquickjs::Context::full(&runtime).unwrap();
 
-    let mut sbuf = "drawcolor(128 as number, 0, 0)".to_string();
+    let mut sbuf = read_to_string(Path::new("foo.ts")).unwrap();
     let alloc = Allocator::default();
     let _ret = oxidase::transpile(&alloc, SourceType::ts(), &mut sbuf);
-    println!("{}", sbuf);
 
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
