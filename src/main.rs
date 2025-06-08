@@ -2,6 +2,7 @@
 
 extern crate sdl3;
 
+use oxidase::{Allocator, SourceType};
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
@@ -11,6 +12,11 @@ pub fn main() {
     let runtime = rquickjs::Runtime::new().unwrap();
 
     let context = rquickjs::Context::full(&runtime).unwrap();
+
+    let mut sbuf = "const n:number = 3".to_string();
+    let alloc = Allocator::default();
+    let _ret = oxidase::transpile(&alloc, SourceType::ts(), &mut sbuf);
+    println!("{}", sbuf);
 
     context.with(|ctx| {
         ctx.eval::<(), _>(r#" const foo = 3 "#).unwrap();
