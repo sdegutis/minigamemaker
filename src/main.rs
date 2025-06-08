@@ -31,16 +31,19 @@ pub fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     context.with(|ctx| {
-        let f = MutFn::new(move |r: u8, g: u8, b: u8| {
-            canvas.set_draw_color(Color::RGB(r, g, b));
-            canvas.clear();
-            canvas.present();
-        });
-
-        let f = rquickjs::Function::new(ctx.clone(), f)
+        let _ = ctx.globals().set(
+            "drawcolor",
+            rquickjs::Function::new(
+                ctx.clone(),
+                MutFn::new(move |r: u8, g: u8, b: u8| {
+                    canvas.set_draw_color(Color::RGB(r, g, b));
+                    canvas.clear();
+                    canvas.present();
+                }),
+            )
             .unwrap()
-            .with_name("hi");
-        let _ = ctx.globals().set("drawcolor", f);
+            .with_name("drawcolor"),
+        );
         ctx.eval::<(), _>(sbuf).unwrap();
     });
 
