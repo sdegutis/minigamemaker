@@ -22,9 +22,38 @@ pub fn main() {
     let context = v8::Context::new(scope, Default::default());
     let scope = &mut v8::ContextScope::new(scope, context);
 
-    let code = v8::String::new(scope, "'Hello' + ' World!'").unwrap();
-    println!("javascript code: {}", code.to_rust_string_lossy(scope));
+    //This function will be exposed to calling from javascript and will be on global object
+    let first_function = v8::Function::new(
+        scope,
+        |scope: &mut v8::HandleScope,
+         args: v8::FunctionCallbackArguments,
+         mut rv: v8::ReturnValue| {
+            let r = args.get(1).int32_value(scope).unwrap();
+            println!("number: {}", r);
 
+            let arg = args.get(0);
+            let arg_string = arg.to_string(scope).unwrap().to_rust_string_lossy(scope);
+            println!("{}", arg_string);
+            let returned_value_string =
+                v8::String::new(scope, "This is returned from rust to javascript")
+                    .unwrap()
+                    .into();
+            rv.set(returned_value_string);
+        },
+    )
+    .unwrap()
+    .into();
+
+    //Name of function which be used in javascript
+    let name = v8::String::new(scope, "testFunction").unwrap().into();
+
+    //Global javascript object
+    let global = context.global(scope);
+
+    //Set my function to global javascript object
+    global.set(scope, name, first_function);
+
+    let code = v8::String::new(scope, "testFunction('abc' ,1234*2)").unwrap();
     let script = v8::Script::compile(scope, code, None).unwrap();
     let result = script.run(scope).unwrap();
     let result = result.to_string(scope).unwrap();
